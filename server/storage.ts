@@ -13,7 +13,7 @@ const MemoryStore = createMemoryStore(session);
 // Interface for storage operations
 export interface IStorage {
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: any; // Express session store
   
   // User operations
   getUser(id: number): Promise<User | undefined>;
@@ -74,7 +74,7 @@ export class MemStorage implements IStorage {
   private accessRequestItems: Map<number, AccessRequestItem>;
   private accessPolicies: Map<number, AccessPolicy>;
   private notifications: Map<number, Notification>;
-  sessionStore: session.SessionStore;
+  sessionStore: any; // Express session store
   
   private userIdCounter: number = 1;
   private schemaIdCounter: number = 1;
@@ -102,7 +102,7 @@ export class MemStorage implements IStorage {
     // Initialize with admin user
     this.createUser({
       email: "admin@example.com",
-      password: "$2b$10$KmhbT9.v4/NUzHZkIIY.CeZaQ8jqQI2gZgX6nJUYjXMVjVCHSxmSu", // "password123"
+      password: "password123",
       role: "admin"
     });
   }

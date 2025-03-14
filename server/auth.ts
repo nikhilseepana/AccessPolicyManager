@@ -22,10 +22,33 @@ async function hashPassword(password: string) {
 }
 
 async function comparePasswords(supplied: string, stored: string) {
-  const [hashed, salt] = stored.split(".");
-  const hashedBuf = Buffer.from(hashed, "hex");
-  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-  return timingSafeEqual(hashedBuf, suppliedBuf);
+  try {
+    // Check if stored password has valid format
+    if (!stored || !stored.includes('.')) {
+      return false;
+    }
+    
+    const [hashed, salt] = stored.split(".");
+    
+    if (!hashed || !salt) {
+      return false;
+    }
+    
+    const hashedBuf = Buffer.from(hashed, "hex");
+    const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+    
+    // Check if buffers have the same length before comparing
+    if (hashedBuf.length !== suppliedBuf.length) {
+      console.error('Buffer length mismatch in comparePasswords:', 
+        { hashedLength: hashedBuf.length, suppliedLength: suppliedBuf.length });
+      return false;
+    }
+    
+    return timingSafeEqual(hashedBuf, suppliedBuf);
+  } catch (error) {
+    console.error('Error in comparePasswords:', error);
+    return false;
+  }
 }
 
 export function setupAuth(app: Express) {
@@ -115,7 +138,7 @@ export function setupAuth(app: Express) {
 }
 
 // Middleware to ensure user is authenticated
-export function isAuthenticated(req: Express.Request, res: Express.Response, next: Express.NextFunction) {
+export function isAuthenticated(req: any, res: any, next: any) {
   if (req.isAuthenticated()) {
     return next();
   }
@@ -123,7 +146,7 @@ export function isAuthenticated(req: Express.Request, res: Express.Response, nex
 }
 
 // Middleware to ensure user is an admin
-export function isAdmin(req: Express.Request, res: Express.Response, next: Express.NextFunction) {
+export function isAdmin(req: any, res: any, next: any) {
   if (req.isAuthenticated() && req.user.role === "admin") {
     return next();
   }
