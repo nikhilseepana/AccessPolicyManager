@@ -1,5 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import swaggerUi from "swagger-ui-express";
+import { swaggerDocument } from "./swagger";
 import { setupAuth, isAuthenticated, isAdmin } from "./auth";
 import { storage } from "./storage";
 import { z } from "zod";
@@ -365,6 +367,9 @@ async function initSampleData() {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up Swagger documentation
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
   // Set up authentication routes
   setupAuth(app);
 
