@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import type { User } from "@shared/schema";
 import type { LoginData } from "@shared/schema";
 
