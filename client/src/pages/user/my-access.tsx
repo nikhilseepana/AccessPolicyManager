@@ -115,7 +115,7 @@ export default function MyAccess() {
                     <div>{getEffectLabel(policy.effect)}</div>
                     <div>
                       {policy.effect === 'allowAll' ? 'All fields' : 
-                       (policy.fields as string[]).join(', ')}
+                       (policy.fields as string[])?.join(', ')}
                     </div>
                   </div>
                 ))}
