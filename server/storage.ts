@@ -363,13 +363,18 @@ export class MemStorage implements IStorage {
     const id = this.policyIdCounter++;
     const now = new Date();
     
+    // Convert fields to string[] if it exists
+    const fields = policyData.fields ? 
+      (Array.isArray(policyData.fields) ? policyData.fields : Array.from(policyData.fields as any)) : 
+      null;
+    
     const policy: AccessPolicy = {
       id,
       userId: policyData.userId,
       schemaId: policyData.schemaId,
       tableId: policyData.tableId,
       effect: policyData.effect,
-      fields: policyData.fields || null, // Ensure fields is string[] | null
+      fields: fields, // Properly converted to string[] | null
       createdAt: now,
       updatedAt: now
     };
