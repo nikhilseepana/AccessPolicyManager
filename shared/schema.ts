@@ -23,6 +23,7 @@ export const effectEnum = pgEnum("effect", ["allow", "deny", "allowAll"]);
 export const schemas = pgTable("schemas", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
+  description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -37,6 +38,7 @@ export const insertSchemaSchema = createInsertSchema(schemas).omit({
 export const tables = pgTable("tables", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  description: text("description"),
   schemaId: integer("schema_id").notNull().references(() => schemas.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -53,6 +55,7 @@ export const fields = pgTable("fields", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   dataType: text("data_type").notNull(),
+  description: text("description"),
   tableId: integer("table_id").notNull().references(() => tables.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -170,13 +173,16 @@ export const registerSchema = insertUserSchema.extend({
 
 export const schemaUploadSchema = z.object({
   name: z.string().min(1),
+  description: z.string().nullable().optional(),
   tables: z.array(
     z.object({
       name: z.string().min(1),
+      description: z.string().nullable().optional(),
       fields: z.array(
         z.object({
           name: z.string().min(1),
           dataType: z.string().min(1),
+          description: z.string().nullable().optional(),
         })
       ),
     })

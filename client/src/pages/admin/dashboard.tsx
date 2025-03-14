@@ -1,13 +1,23 @@
-import { useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import StatCard from '@/components/admin/stat-card';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Database } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 interface AdminDashboardProps {
   onTabChange: (tab: 'dashboard' | 'requests' | 'users' | 'schema') => void;
 }
 
 export default function AdminDashboard({ onTabChange }: AdminDashboardProps) {
+  const [initializing, setInitializing] = useState(false);
+  const [initSuccess, setInitSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   // Fetch stats data
   const { data: accessRequests, isLoading: isLoadingRequests } = useQuery({
     queryKey: ['/api/access-requests'],
@@ -22,6 +32,50 @@ export default function AdminDashboard({ onTabChange }: AdminDashboardProps) {
   const { data: schemas, isLoading: isLoadingSchemas } = useQuery({
     queryKey: ['/api/schemas'],
     staleTime: 1000 * 60, // 1 minute
+  });
+  
+  // Initialize sample data mutation
+  const initMutation = useMutation({
+    mutationFn: async () => {
+      setInitializing(true);
+      setInitSuccess(false);
+      setError(null);
+      
+      try {
+        const response = await apiRequest({
+          path: '/api/init-sample-data',
+          method: 'POST',
+        });
+        
+        setInitSuccess(true);
+        return response;
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to initialize sample data');
+        throw err;
+      } finally {
+        setInitializing(false);
+      }
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Sample data initialized successfully',
+        variant: 'default',
+      });
+      
+      // Invalidate all queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/schemas'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/access-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/access-policies'] });
+    },
+    onError: (err) => {
+      toast({
+        title: 'Error',
+        description: err instanceof Error ? err.message : 'Failed to initialize sample data',
+        variant: 'destructive',
+      });
+    },
   });
 
   // Calculate stats
@@ -53,6 +107,54 @@ export default function AdminDashboard({ onTabChange }: AdminDashboardProps) {
 
   return (
     <>
+      {totalSchemas === 0 && (
+        <div className="mb-8">
+          <Alert className="bg-amber-50 border-amber-200">
+            <Database className="h-4 w-4" />
+            <AlertTitle>No schemas found</AlertTitle>
+            <AlertDescription>
+              Initialize sample data to get started with example database schemas, users, and permission policies.
+            </AlertDescription>
+            <div className="mt-4">
+              <Button 
+                onClick={() => initMutation.mutate()}
+                disabled={initializing}
+                className="bg-amber-500 hover:bg-amber-600 text-white"
+              >
+                {initializing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Initializing...
+                  </>
+                ) : (
+                  'Initialize Sample Data'
+                )}
+              </Button>
+            </div>
+          </Alert>
+        </div>
+      )}
+      
+      {error && (
+        <div className="mb-8">
+          <Alert variant="destructive">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
+      )}
+      
+      {initSuccess && (
+        <div className="mb-8">
+          <Alert variant="default" className="bg-green-50 border-green-200">
+            <AlertTitle>Success!</AlertTitle>
+            <AlertDescription>
+              Sample data has been initialized successfully. You can now explore schemas, users, and access policies.
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <StatCard
           title="Pending Requests"
