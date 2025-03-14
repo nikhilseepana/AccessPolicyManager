@@ -39,6 +39,14 @@ export default function AuthPage() {
     },
   });
 
+  const onLoginSubmit = async (data: z.infer<typeof loginSchema>) => {
+    try {
+      await loginMutation.mutateAsync(data);
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
+  };
+
   // Register form - must be defined before any conditional returns
   const registerForm = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
