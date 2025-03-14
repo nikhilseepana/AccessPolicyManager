@@ -98,21 +98,245 @@ export class MemStorage implements IStorage {
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000 // prune expired entries every 24h
     });
-    
-    // Initialize with admin user - hardcoded with clear password for demo
-    // In real app this would be initialized through a migration or seed script
-    const id = this.userIdCounter++;
+
+    // Initialize sample data
+    this.initializeSampleData();
+  }
+
+  private async initializeSampleData() {
     const now = new Date();
+
+    // Create admin user
+    const adminId = this.userIdCounter++;
     const adminUser: User = {
-      id,
+      id: adminId,
       email: "admin@example.com",
-      // Plaintext password for demonstration: admin123
-      password: "admin123", 
+      password: "admin123",
       role: "admin",
       createdAt: now
     };
-    this.users.set(id, adminUser);
+    this.users.set(adminId, adminUser);
     console.log("Admin user created with email: admin@example.com and password: admin123");
+
+    // Create sample users
+    const sampleUsers = [
+      { email: "sales_user@example.com", password: "password123", role: "user" },
+      { email: "finance_user@example.com", password: "password123", role: "user" },
+      { email: "hr_user@example.com", password: "password123", role: "user" },
+      { email: "manager@example.com", password: "password123", role: "user" }
+    ];
+
+    const createdUsers = [];
+    for (const userData of sampleUsers) {
+      const user = await this.createUser(userData);
+      createdUsers.push(user);
+    }
+
+    // Create sample schemas
+    const schemas = [
+      {
+        name: "Sales",
+        description: "Sales department database schema",
+        tables: [
+          {
+            name: "Customers",
+            description: "Customer information table",
+            fields: [
+              { name: "customer_id", dataType: "integer", description: "Primary key" },
+              { name: "name", dataType: "text", description: "Customer full name" },
+              { name: "email", dataType: "text", description: "Customer email address" },
+              { name: "phone", dataType: "text", description: "Customer phone number" },
+              { name: "address", dataType: "text", description: "Customer address" },
+              { name: "created_at", dataType: "timestamp", description: "Record creation date" }
+            ]
+          },
+          {
+            name: "Orders",
+            description: "Customer orders data",
+            fields: [
+              { name: "order_id", dataType: "integer", description: "Primary key" },
+              { name: "customer_id", dataType: "integer", description: "Foreign key to Customers" },
+              { name: "order_date", dataType: "date", description: "Date of order" },
+              { name: "total_amount", dataType: "decimal", description: "Total order amount" },
+              { name: "status", dataType: "text", description: "Order status" },
+              { name: "payment_method", dataType: "text", description: "Payment method used" }
+            ]
+          },
+          {
+            name: "Products",
+            description: "Product catalog",
+            fields: [
+              { name: "product_id", dataType: "integer", description: "Primary key" },
+              { name: "name", dataType: "text", description: "Product name" },
+              { name: "description", dataType: "text", description: "Product description" },
+              { name: "price", dataType: "decimal", description: "Product price" },
+              { name: "category", dataType: "text", description: "Product category" },
+              { name: "stock_quantity", dataType: "integer", description: "Available stock" }
+            ]
+          }
+        ]
+      },
+      {
+        name: "Finance",
+        description: "Financial department database schema",
+        tables: [
+          {
+            name: "Invoices",
+            description: "Customer invoices",
+            fields: [
+              { name: "invoice_id", dataType: "integer", description: "Primary key" },
+              { name: "order_id", dataType: "integer", description: "Foreign key to Orders" },
+              { name: "amount", dataType: "decimal", description: "Invoice amount" },
+              { name: "issued_date", dataType: "date", description: "Date invoice was issued" },
+              { name: "due_date", dataType: "date", description: "Invoice due date" },
+              { name: "status", dataType: "text", description: "Payment status" }
+            ]
+          },
+          {
+            name: "Expenses",
+            description: "Company expenses",
+            fields: [
+              { name: "expense_id", dataType: "integer", description: "Primary key" },
+              { name: "category", dataType: "text", description: "Expense category" },
+              { name: "amount", dataType: "decimal", description: "Expense amount" },
+              { name: "date", dataType: "date", description: "Date of expense" },
+              { name: "department", dataType: "text", description: "Department responsible" },
+              { name: "description", dataType: "text", description: "Expense description" }
+            ]
+          }
+        ]
+      },
+      {
+        name: "HR",
+        description: "Human resources database schema",
+        tables: [
+          {
+            name: "Employees",
+            description: "Employee information",
+            fields: [
+              { name: "employee_id", dataType: "integer", description: "Primary key" },
+              { name: "name", dataType: "text", description: "Employee full name" },
+              { name: "position", dataType: "text", description: "Job position" },
+              { name: "department", dataType: "text", description: "Department" },
+              { name: "salary", dataType: "decimal", description: "Employee salary" },
+              { name: "hire_date", dataType: "date", description: "Date employee was hired" },
+              { name: "email", dataType: "text", description: "Employee email" },
+              { name: "phone", dataType: "text", description: "Employee phone number" }
+            ]
+          },
+          {
+            name: "Departments",
+            description: "Company departments",
+            fields: [
+              { name: "department_id", dataType: "integer", description: "Primary key" },
+              { name: "name", dataType: "text", description: "Department name" },
+              { name: "manager_id", dataType: "integer", description: "Department manager employee ID" },
+              { name: "budget", dataType: "decimal", description: "Department annual budget" },
+              { name: "location", dataType: "text", description: "Department location" }
+            ]
+          },
+          {
+            name: "Leave_Requests",
+            description: "Employee leave requests",
+            fields: [
+              { name: "request_id", dataType: "integer", description: "Primary key" },
+              { name: "employee_id", dataType: "integer", description: "Foreign key to Employees" },
+              { name: "start_date", dataType: "date", description: "Leave start date" },
+              { name: "end_date", dataType: "date", description: "Leave end date" },
+              { name: "status", dataType: "text", description: "Request status" },
+              { name: "type", dataType: "text", description: "Leave type" },
+              { name: "reason", dataType: "text", description: "Reason for leave" }
+            ]
+          }
+        ]
+      }
+    ];
+
+    // Create schemas and their tables/fields
+    for (const schemaData of schemas) {
+      const schema = await this.createSchema({ 
+        name: schemaData.name,
+        description: schemaData.description,
+        tables: schemaData.tables
+      });
+
+      // Set up access policies
+      const salesUser = createdUsers.find(u => u.email === "sales_user@example.com");
+      const financeUser = createdUsers.find(u => u.email === "finance_user@example.com");
+      const hrUser = createdUsers.find(u => u.email === "hr_user@example.com");
+      const managerUser = createdUsers.find(u => u.email === "manager@example.com");
+
+      if (schema.name === "Sales" && salesUser) {
+        const tables = await this.getTablesBySchema(schema.id);
+        for (const table of tables) {
+          await this.createAccessPolicy({
+            userId: salesUser.id,
+            schemaId: schema.id,
+            tableId: table.id,
+            effect: "allow",
+            fields: null
+          });
+        }
+      }
+
+      if (schema.name === "Finance" && financeUser) {
+        const tables = await this.getTablesBySchema(schema.id);
+        for (const table of tables) {
+          await this.createAccessPolicy({
+            userId: financeUser.id,
+            schemaId: schema.id,
+            tableId: table.id,
+            effect: "allow",
+            fields: null
+          });
+        }
+      }
+
+      if (schema.name === "HR" && hrUser) {
+        const tables = await this.getTablesBySchema(schema.id);
+        for (const table of tables) {
+          await this.createAccessPolicy({
+            userId: hrUser.id,
+            schemaId: schema.id,
+            tableId: table.id,
+            effect: "allow",
+            fields: null
+          });
+        }
+      }
+
+      // Set up manager access (limited)
+      if (schema.name === "HR" && managerUser) {
+        const tables = await this.getTablesBySchema(schema.id);
+        const employeesTable = tables.find(t => t.name === "Employees");
+        const leaveRequestsTable = tables.find(t => t.name === "Leave_Requests");
+
+        if (employeesTable) {
+          const fields = await this.getFieldsByTable(employeesTable.id);
+          const fieldNames = fields
+            .filter(f => f.name !== "salary")
+            .map(f => f.name);
+
+          await this.createAccessPolicy({
+            userId: managerUser.id,
+            schemaId: schema.id,
+            tableId: employeesTable.id,
+            effect: "allow",
+            fields: fieldNames
+          });
+        }
+
+        if (leaveRequestsTable) {
+          await this.createAccessPolicy({
+            userId: managerUser.id,
+            schemaId: schema.id,
+            tableId: leaveRequestsTable.id,
+            effect: "allow",
+            fields: null
+          });
+        }
+      }
+    }
   }
 
   // User operations
