@@ -12,8 +12,14 @@ export default function SchemaAccordion({ schemas }: SchemaAccordionProps) {
   const [expandedTables, setExpandedTables] = useState<Record<string, boolean>>({});
 
   // Get schema details with tables and fields
-  const getSchemaDetails = useQuery({
-    queryKey: ['/api/schema-details'],
+  const { data: schemaDetails } = useQuery({
+    queryKey: ['/api/schemas'],
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  // Get tables
+  const { data: tables } = useQuery({
+    queryKey: ['/api/tables'],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
@@ -35,10 +41,8 @@ export default function SchemaAccordion({ schemas }: SchemaAccordionProps) {
 
   // Get tables for schema
   const getTablesForSchema = (schemaId: number) => {
-    if (!getSchemaDetails.data) return [];
-    
-    const schemaDetail = getSchemaDetails.data.find((s: any) => s.id === schemaId);
-    return schemaDetail?.tables || [];
+    if (!tables) return [];
+    return tables.filter((table: any) => table.schemaId === schemaId) || [];
   };
 
   // Get fields for table
