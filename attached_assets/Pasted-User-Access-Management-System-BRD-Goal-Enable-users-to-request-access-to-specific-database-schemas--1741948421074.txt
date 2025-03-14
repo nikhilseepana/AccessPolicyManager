@@ -1,0 +1,62 @@
+User Access Management System BRD
+Goal:
+Enable users to request access to specific database schemas, tables, and fields, and allow admins to approve or reject these requests. Admins can also upload the latest database schema metadata.
+
+Key Features:
+User Access Requests:
+
+Users request access to schemas, tables, and fields.
+Users can specify AllowAll, Allow, or Deny access for fields.
+Users can request access to multiple schemas/tables/fields.
+Admin Portal:
+
+Admins approve or reject user requests.
+Admins can apply access policies (AllowAll, Allow, Deny) to specific fields.
+Admins can upload the latest data dictionary (database schema metadata).
+Admins can view and manage all user requests.
+Roles:
+
+User Role: Requests access to resources but cannot approve or modify others' requests.
+Admin Role: Approves/rejects access requests, manages policies, and uploads data dictionary.
+Copy User Access:
+
+Admin can copy permissions from one user to another (pending approval).
+Conflict Management:
+
+No conflicting permissions (e.g., AllowAll vs. Deny) on the same table/field.
+Notifications:
+
+Users are notified of the approval or rejection of their access requests.
+Data Model:
+User: Stores user details (email, role, access requests).
+Access Request: Stores requested access details (schema, table, fields, policy).
+Data Dictionary: Stores the latest schema, table, and field information.
+Example Policy:
+json
+Copy code
+[
+  {
+    "userEmail": "nikhi@abc.com",
+    "schema": "supplychain",
+    "policies": [
+      {
+        "resource": "orders",
+        "effect": "allow",
+        "fields": ["col1", "col2"]
+      },
+      {
+        "resource": "quotes",
+        "effect": "deny",
+        "fields": ["col99", "col100"]
+      }
+    ]
+  }
+]
+Flow:
+User Request: User requests access to schema/table/fields.
+Admin Review: Admin reviews requests and applies policies.
+Upload Mapping: Admin uploads updated database schema metadata.
+Notification: User receives notification of request status (approved/rejected).
+Roles and Permissions:
+User: Can request access to specific schema/table/fields.
+Admin: Can approve/reject requests, manage permissions, and upload database metadata.
