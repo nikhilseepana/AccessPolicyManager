@@ -30,7 +30,6 @@ export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("login");
 
-  // Login form - must be defined before any conditional returns
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -39,15 +38,6 @@ export default function AuthPage() {
     },
   });
 
-  const onLoginSubmit = async (data: z.infer<typeof loginSchema>) => {
-    try {
-      await loginMutation.mutateAsync(data);
-    } catch (error) {
-      console.error('Login failed:', error);
-    }
-  };
-
-  // Register form - must be defined before any conditional returns
   const registerForm = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -57,19 +47,15 @@ export default function AuthPage() {
       role: "user",
     },
   });
-  
-  // If user is already logged in, redirect to home
-  // This must come after all hooks are called
+
   if (user) {
     return <Redirect to="/" />;
   }
 
-  // Handle login submit
   const onLoginSubmit = (data: z.infer<typeof loginSchema>) => {
     loginMutation.mutate(data);
   };
 
-  // Handle register submit
   const onRegisterSubmit = (data: z.infer<typeof registerSchema>) => {
     const { confirmPassword, ...userData } = data;
     registerMutation.mutate(userData);
@@ -83,7 +69,7 @@ export default function AuthPage() {
             <Shield className="h-6 w-6 text-primary" />
             <h1 className="text-xl font-medium">User Access Management</h1>
           </div>
-          
+
           <Tabs
             defaultValue="login"
             value={activeTab}
@@ -94,7 +80,7 @@ export default function AuthPage() {
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="register">Register</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="login">
               <Form {...loginForm}>
                 <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
@@ -115,7 +101,7 @@ export default function AuthPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={loginForm.control}
                     name="password"
@@ -133,7 +119,7 @@ export default function AuthPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <Button 
                     type="submit" 
                     className="w-full" 
@@ -143,7 +129,7 @@ export default function AuthPage() {
                   </Button>
                 </form>
               </Form>
-              
+
               <div className="mt-4 text-center text-sm">
                 <span className="text-gray-500">Don't have an account?</span>{" "}
                 <button 
@@ -155,7 +141,7 @@ export default function AuthPage() {
                 </button>
               </div>
             </TabsContent>
-            
+
             <TabsContent value="register">
               <Form {...registerForm}>
                 <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
@@ -176,7 +162,7 @@ export default function AuthPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={registerForm.control}
                     name="password"
@@ -194,7 +180,7 @@ export default function AuthPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={registerForm.control}
                     name="confirmPassword"
@@ -212,7 +198,7 @@ export default function AuthPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={registerForm.control}
                     name="role"
@@ -228,7 +214,7 @@ export default function AuthPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <Button 
                     type="submit" 
                     className="w-full" 
@@ -238,7 +224,7 @@ export default function AuthPage() {
                   </Button>
                 </form>
               </Form>
-              
+
               <div className="mt-4 text-center text-sm">
                 <span className="text-gray-500">Already have an account?</span>{" "}
                 <button 
@@ -252,7 +238,7 @@ export default function AuthPage() {
             </TabsContent>
           </Tabs>
         </div>
-        
+
         <div className="hidden md:flex flex-col justify-center p-6 bg-primary text-white rounded-lg">
           <h2 className="text-2xl font-bold mb-4">User Access Management System</h2>
           <p className="mb-4">
