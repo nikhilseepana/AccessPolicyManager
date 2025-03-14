@@ -99,12 +99,20 @@ export class MemStorage implements IStorage {
       checkPeriod: 86400000 // prune expired entries every 24h
     });
     
-    // Initialize with admin user
-    this.createUser({
+    // Initialize with admin user - hardcoded with clear password for demo
+    // In real app this would be initialized through a migration or seed script
+    const id = this.userIdCounter++;
+    const now = new Date();
+    const adminUser: User = {
+      id,
       email: "admin@example.com",
-      password: "password123",
-      role: "admin"
-    });
+      // Plaintext password for demonstration: admin123
+      password: "admin123", 
+      role: "admin",
+      createdAt: now
+    };
+    this.users.set(id, adminUser);
+    console.log("Admin user created with email: admin@example.com and password: admin123");
   }
 
   // User operations
