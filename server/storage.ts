@@ -129,7 +129,9 @@ export class MemStorage implements IStorage {
     const now = new Date();
     const user: User = {
       id,
-      ...userData,
+      email: userData.email,
+      password: userData.password,
+      role: userData.role || 'user', // Ensure role is always a string
       createdAt: now
     };
     this.users.set(id, user);
@@ -261,7 +263,9 @@ export class MemStorage implements IStorage {
     
     const request: AccessRequest = {
       id,
-      ...requestData,
+      userId: requestData.userId,
+      schemaId: requestData.schemaId,
+      reason: requestData.reason || null, // Ensure reason is string | null
       status: "pending",
       createdAt: now,
       updatedAt: now
@@ -331,9 +335,17 @@ export class MemStorage implements IStorage {
     const id = this.requestItemIdCounter++;
     const now = new Date();
     
+    // Convert fields to string[] if it exists
+    const fields = itemData.fields ? 
+      (Array.isArray(itemData.fields) ? itemData.fields : Array.from(itemData.fields)) : 
+      null;
+    
     const item: AccessRequestItem = {
       id,
-      ...itemData,
+      requestId: itemData.requestId,
+      tableId: itemData.tableId,
+      effect: itemData.effect,
+      fields: fields, // Properly converted to string[] | null
       createdAt: now
     };
     
@@ -353,7 +365,11 @@ export class MemStorage implements IStorage {
     
     const policy: AccessPolicy = {
       id,
-      ...policyData,
+      userId: policyData.userId,
+      schemaId: policyData.schemaId,
+      tableId: policyData.tableId,
+      effect: policyData.effect,
+      fields: policyData.fields || null, // Ensure fields is string[] | null
       createdAt: now,
       updatedAt: now
     };
@@ -462,7 +478,12 @@ export class MemStorage implements IStorage {
   async getUserNotifications(userId: number): Promise<Notification[]> {
     return Array.from(this.notifications.values())
       .filter(notification => notification.userId === userId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort((a, b) => {
+        // Handle potential null createdAt values
+        const timeA = a.createdAt ? a.createdAt.getTime() : 0;
+        const timeB = b.createdAt ? b.createdAt.getTime() : 0;
+        return timeB - timeA;
+      });
   }
 
   async markNotificationAsRead(id: number): Promise<void> {
