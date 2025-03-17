@@ -1,21 +1,13 @@
-import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { Redirect } from "wouter";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { loginSchema, registerSchema } from "@shared/schema";
-import { Shield } from "lucide-react";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { loginSchema, registerSchema } from '@shared/schema';
+import { Shield } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { Redirect } from 'wouter';
+import { z } from 'zod';
 
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -23,28 +15,30 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
-  const [activeTab, setActiveTab] = useState<string>("login");
+  const [activeTab, setActiveTab] = useState<string>('login');
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
     },
   });
 
   const registerForm = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      email: "",
-      password: "",
-      confirmPassword: "",
-      role: "user",
+      email: '',
+      password: '',
+      confirmPassword: '',
+      role: 'user',
     },
   });
 
@@ -91,11 +85,7 @@ export default function AuthPage() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input 
-                            placeholder="your@email.com" 
-                            {...field}
-                            type="email"
-                          />
+                          <Input placeholder="your@email.com" {...field} type="email" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -109,32 +99,24 @@ export default function AuthPage() {
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="password" 
-                            placeholder="••••••••" 
-                            {...field} 
-                          />
+                          <Input type="password" placeholder="••••••••" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={loginMutation.isPending}
-                  >
-                    {loginMutation.isPending ? "Logging in..." : "Login"}
+                  <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+                    {loginMutation.isPending ? 'Logging in...' : 'Login'}
                   </Button>
                 </form>
               </Form>
 
               <div className="mt-4 text-center text-sm">
-                <span className="text-gray-500">Don't have an account?</span>{" "}
-                <button 
+                <span className="text-gray-500">Don't have an account?</span>{' '}
+                <button
                   className="text-primary hover:underline"
-                  onClick={() => setActiveTab("register")}
+                  onClick={() => setActiveTab('register')}
                   type="button"
                 >
                   Register
@@ -152,11 +134,7 @@ export default function AuthPage() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input 
-                            placeholder="your@email.com" 
-                            {...field}
-                            type="email"
-                          />
+                          <Input placeholder="your@email.com" {...field} type="email" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -170,11 +148,7 @@ export default function AuthPage() {
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="password" 
-                            placeholder="••••••••" 
-                            {...field} 
-                          />
+                          <Input type="password" placeholder="••••••••" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -188,11 +162,7 @@ export default function AuthPage() {
                       <FormItem>
                         <FormLabel>Confirm Password</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="password" 
-                            placeholder="••••••••" 
-                            {...field} 
-                          />
+                          <Input type="password" placeholder="••••••••" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -205,31 +175,23 @@ export default function AuthPage() {
                     render={({ field }) => (
                       <FormItem className="hidden">
                         <FormControl>
-                          <Input 
-                            type="hidden" 
-                            {...field} 
-                            value="user"
-                          />
+                          <Input type="hidden" {...field} value="user" />
                         </FormControl>
                       </FormItem>
                     )}
                   />
 
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={registerMutation.isPending}
-                  >
-                    {registerMutation.isPending ? "Registering..." : "Register"}
+                  <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
+                    {registerMutation.isPending ? 'Registering...' : 'Register'}
                   </Button>
                 </form>
               </Form>
 
               <div className="mt-4 text-center text-sm">
-                <span className="text-gray-500">Already have an account?</span>{" "}
-                <button 
+                <span className="text-gray-500">Already have an account?</span>{' '}
+                <button
                   className="text-primary hover:underline"
-                  onClick={() => setActiveTab("login")}
+                  onClick={() => setActiveTab('login')}
                   type="button"
                 >
                   Login
@@ -241,9 +203,7 @@ export default function AuthPage() {
 
         <div className="hidden md:flex flex-col justify-center p-6 bg-primary text-white rounded-lg">
           <h2 className="text-2xl font-bold mb-4">User Access Management System</h2>
-          <p className="mb-4">
-            Securely manage database access permissions for your organization.
-          </p>
+          <p className="mb-4">Securely manage database access permissions for your organization.</p>
           <ul className="space-y-2">
             <li className="flex items-center">
               <span className="mr-2">✓</span>

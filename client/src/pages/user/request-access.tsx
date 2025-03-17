@@ -1,13 +1,12 @@
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/use-auth';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
@@ -17,10 +16,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -28,14 +24,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 // Form schema
 const accessRequestSchema = z.object({
-  schemaId: z.string().min(1, "Please select a schema"),
-  tableId: z.string().min(1, "Please select a table"),
-  effect: z.enum(["allow", "allowAll", "deny"]),
+  schemaId: z.string().min(1, 'Please select a schema'),
+  tableId: z.string().min(1, 'Please select a table'),
+  effect: z.enum(['allow', 'allowAll', 'deny']),
   fields: z.array(z.string()).optional(),
-  reason: z.string().min(5, "Please provide a reason for your request"),
+  reason: z.string().min(5, 'Please provide a reason for your request'),
 });
 
 type AccessRequestFormValues = z.infer<typeof accessRequestSchema>;
@@ -44,7 +44,7 @@ export default function RequestAccess() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
-  
+
   // Fetch schemas
   const { data: schemas, isLoading: schemasLoading } = useQuery({
     queryKey: ['/api/schemas'],
@@ -55,12 +55,12 @@ export default function RequestAccess() {
   const form = useForm<AccessRequestFormValues>({
     resolver: zodResolver(accessRequestSchema),
     defaultValues: {
-      schemaId: "",
-      tableId: "",
-      effect: "allow",
+      schemaId: '',
+      tableId: '',
+      effect: 'allow',
       fields: [],
-      reason: "",
-    }
+      reason: '',
+    },
   });
 
   // Watch form values to update UI
@@ -84,7 +84,11 @@ export default function RequestAccess() {
   // Create access request mutation
   const createRequestMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest('POST', '/api/access-requests', data);
+      return await apiRequest({
+        path: '/api/access-requests',
+        method: 'POST',
+        data,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/access-requests'] });
@@ -114,20 +118,20 @@ export default function RequestAccess() {
         {
           tableId: parseInt(data.tableId),
           effect: data.effect,
-          fields: data.effect === 'allowAll' ? [] : selectedFields
-        }
-      ]
+          fields: data.effect === 'allowAll' ? [] : selectedFields,
+        },
+      ],
     };
-    
+
     createRequestMutation.mutate(requestData);
   };
 
   // Handle field selection
   const handleFieldCheck = (fieldName: string, checked: boolean) => {
     if (checked) {
-      setSelectedFields(prev => [...prev, fieldName]);
+      setSelectedFields((prev) => [...prev, fieldName]);
     } else {
-      setSelectedFields(prev => prev.filter(f => f !== fieldName));
+      setSelectedFields((prev) => prev.filter((f) => f !== fieldName));
     }
   };
 
@@ -169,7 +173,7 @@ export default function RequestAccess() {
       <div className="px-6 py-4 border-b border-gray-200">
         <h2 className="text-lg font-medium">Request New Access</h2>
       </div>
-      
+
       <div className="p-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -190,18 +194,19 @@ export default function RequestAccess() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {schemas && schemas.map((schema: any) => (
-                        <SelectItem key={schema.id} value={schema.id.toString()}>
-                          {schema.name}
-                        </SelectItem>
-                      ))}
+                      {schemas &&
+                        schemas.map((schema: any) => (
+                          <SelectItem key={schema.id} value={schema.id.toString()}>
+                            {schema.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             {schemaId && (
               <FormField
                 control={form.control}
@@ -232,7 +237,7 @@ export default function RequestAccess() {
                 )}
               />
             )}
-            
+
             {tableId && (
               <>
                 <FormField
@@ -271,7 +276,7 @@ export default function RequestAccess() {
                     </FormItem>
                   )}
                 />
-                
+
                 {effect !== 'allowAll' && fields.length > 0 && (
                   <FormField
                     control={form.control}
@@ -296,7 +301,7 @@ export default function RequestAccess() {
                                 <Checkbox
                                   id={`field-${field.id}`}
                                   checked={selectedFields.includes(field.name)}
-                                  onCheckedChange={(checked) => 
+                                  onCheckedChange={(checked) =>
                                     handleFieldCheck(field.name, checked as boolean)
                                   }
                                 />
@@ -315,7 +320,7 @@ export default function RequestAccess() {
                     )}
                   />
                 )}
-                
+
                 <FormField
                   control={form.control}
                   name="reason"
@@ -333,7 +338,7 @@ export default function RequestAccess() {
                     </FormItem>
                   )}
                 />
-                
+
                 <div className="flex items-center justify-end space-x-4">
                   <Button
                     type="button"
@@ -345,10 +350,7 @@ export default function RequestAccess() {
                   >
                     Clear
                   </Button>
-                  <Button
-                    type="submit"
-                    disabled={createRequestMutation.isPending}
-                  >
+                  <Button type="submit" disabled={createRequestMutation.isPending}>
                     {createRequestMutation.isPending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />

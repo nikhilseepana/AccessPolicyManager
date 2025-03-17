@@ -1,11 +1,18 @@
-import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { Loader2, Search } from 'lucide-react';
+import { useState } from 'react';
+
+import RequestItem from '@/components/admin/request-item';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Loader2, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import RequestItem from '@/components/admin/request-item';
 
 export default function AdminRequests() {
   const { toast } = useToast();
@@ -21,7 +28,11 @@ export default function AdminRequests() {
   // Mutations
   const approveMutation = useMutation({
     mutationFn: async (requestId: number) => {
-      return await apiRequest('PATCH', `/api/access-requests/${requestId}`, { status: 'approved' });
+      return await apiRequest({
+        method: 'PATCH',
+        path: `/api/access-requests/${requestId}`,
+        data: { status: 'approved' },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/access-requests'] });
@@ -41,7 +52,11 @@ export default function AdminRequests() {
 
   const rejectMutation = useMutation({
     mutationFn: async (requestId: number) => {
-      return await apiRequest('PATCH', `/api/access-requests/${requestId}`, { status: 'rejected' });
+      return await apiRequest({
+        method: 'PATCH',
+        path: `/api/access-requests/${requestId}`,
+        data: { status: 'rejected' },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/access-requests'] });
@@ -70,17 +85,17 @@ export default function AdminRequests() {
   };
 
   // Filter requests
-  const filteredRequests = accessRequests?.filter(request => {
+  const filteredRequests = accessRequests?.filter((request) => {
     // Filter by status
     if (statusFilter !== 'all' && request.status !== statusFilter) {
       return false;
     }
-    
+
     // Filter by search term
     if (searchTerm && !request.user?.email?.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
     }
-    
+
     return true;
   });
 
@@ -133,23 +148,15 @@ export default function AdminRequests() {
             />
           ))
         ) : (
-          <div className="p-6 text-center text-gray-500">
-            No access requests found
-          </div>
+          <div className="p-6 text-center text-gray-500">No access requests found</div>
         )}
       </div>
 
       <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
         <div className="text-sm text-gray-700">
           Showing{' '}
-          <span className="font-medium">
-            {filteredRequests ? filteredRequests.length : 0}
-          </span>{' '}
-          of{' '}
-          <span className="font-medium">
-            {accessRequests ? accessRequests.length : 0}
-          </span>{' '}
-          requests
+          <span className="font-medium">{filteredRequests ? filteredRequests.length : 0}</span> of{' '}
+          <span className="font-medium">{accessRequests ? accessRequests.length : 0}</span> requests
         </div>
       </div>
     </div>

@@ -1,8 +1,9 @@
-import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
 import { X, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -10,9 +11,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -20,6 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 interface CopyPermissionsModalProps {
   sourceUser: any;
@@ -39,7 +40,7 @@ export default function CopyPermissionsModal({
   // Copy permissions mutation
   const copyPermissionsMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest('POST', '/api/access-policies/copy', data);
+      return await apiRequest({ path: '/api/access-policies/copy', method: 'POST', data });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/access-policies'] });
@@ -81,29 +82,22 @@ export default function CopyPermissionsModal({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Copy User Permissions</DialogTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-4 top-4"
-            onClick={onClose}
-          >
+          <Button variant="ghost" size="icon" className="absolute right-4 top-4" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
         </DialogHeader>
 
         <div className="py-4">
           <p className="text-sm text-gray-600 mb-4">
-            Select a user to copy permissions from <span className="font-medium">{sourceUser.email}</span> to:
+            Select a user to copy permissions from{' '}
+            <span className="font-medium">{sourceUser.email}</span> to:
           </p>
 
           <div className="mb-4">
             <Label htmlFor="targetUser" className="block text-sm font-medium text-gray-700 mb-1">
               Destination User
             </Label>
-            <Select
-              value={targetUserId}
-              onValueChange={setTargetUserId}
-            >
+            <Select value={targetUserId} onValueChange={setTargetUserId}>
               <SelectTrigger id="targetUser">
                 <SelectValue placeholder="Select a user" />
               </SelectTrigger>
@@ -124,10 +118,7 @@ export default function CopyPermissionsModal({
                 checked={replaceExisting}
                 onCheckedChange={(checked) => setReplaceExisting(!!checked)}
               />
-              <Label
-                htmlFor="replaceExisting"
-                className="text-sm text-gray-700 cursor-pointer"
-              >
+              <Label htmlFor="replaceExisting" className="text-sm text-gray-700 cursor-pointer">
                 Replace existing permissions
               </Label>
             </div>

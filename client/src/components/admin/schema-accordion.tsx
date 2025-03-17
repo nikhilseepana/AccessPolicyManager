@@ -1,120 +1,220 @@
+import { ExpandMore as ExpandMoreIcon, Storage as DatabaseIcon } from '@mui/icons-material';
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
+  CircularProgress,
+  Divider,
+  Grid,
+  Paper,
+  Typography,
+} from '@mui/material';
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { ChevronDown, ChevronUp, Database, FileText } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
-interface SchemaAccordionProps {
-  schemas: any[];
+interface Field {
+  id: number;
+  name: string;
+  dataType: string;
+  tableId: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export default function SchemaAccordion({ schemas }: SchemaAccordionProps) {
+interface Table {
+  id: number;
+  name: string;
+  schemaId: number;
+  createdAt: string;
+  updatedAt: string;
+  fields: Field[];
+}
+
+interface Schema {
+  id: number;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  tables: Table[];
+}
+
+// Simplified schema interface for initial data
+interface MinimalSchema {
+  id: number;
+  name: string;
+  tables?: Table[]; // Optional, might be loaded later
+}
+
+interface SchemaAccordionProps {
+  schemas: MinimalSchema[]; // This is now required and simpler
+}
+
+export default function SchemaAccordion({ schemas: initialSchemas }: SchemaAccordionProps) {
   const [expandedSchemas, setExpandedSchemas] = useState<Record<string, boolean>>({});
   const [expandedTables, setExpandedTables] = useState<Record<string, boolean>>({});
+  const [loadedSchemaIds, setLoadedSchemaIds] = useState<Set<number>>(new Set());
+  const [fullSchemas, setFullSchemas] = useState<Record<number, Schema>>({});
 
-  // Get tables query
-  const { data: tables } = useQuery({
-    queryKey: ['/api/tables'],
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+  const toggleSchema = async (schemaId: number) => {
+    // If already loaded or collapsed, just toggle visibility
+    if (loadedSchemaIds.has(schemaId) || expandedSchemas[schemaId]) {
+      setExpandedSchemas((prev) => ({
+        ...prev,
+        [schemaId]: !prev[schemaId],
+      }));
+      return;
+    }
 
-  // Get fields query
-  const { data: fields } = useQuery({
-    queryKey: ['/api/fields'],
-    staleTime: 1000 * 60 * 5,
-  });
+    // If expanding and not loaded, fetch the full schema
+    try {
+      const response = await fetch(`/api/schemas/${schemaId}`);
+      if (!response.ok) throw new Error('Failed to fetch schema');
 
-  const toggleSchema = (schemaId: number) => {
-    setExpandedSchemas(prev => ({
-      ...prev,
-      [schemaId]: !prev[schemaId]
-    }));
+      const fullSchema = await response.json();
+
+      // Store the full schema
+      setFullSchemas((prev) => ({
+        ...prev,
+        [schemaId]: fullSchema,
+      }));
+
+      // Mark as loaded
+      setLoadedSchemaIds((prev) => new Set(prev).add(schemaId));
+
+      // Expand the schema
+      setExpandedSchemas((prev) => ({
+        ...prev,
+        [schemaId]: true,
+      }));
+    } catch (err) {
+      console.error('Error fetching schema:', err);
+    }
   };
 
   const toggleTable = (tableId: number) => {
-    setExpandedTables(prev => ({
+    setExpandedTables((prev) => ({
       ...prev,
-      [tableId]: !prev[tableId]
+      [tableId]: !prev[tableId],
     }));
   };
 
-  const getTablesForSchema = (schemaId: number) => {
-    if (!tables) return [];
-    return tables.filter((table: any) => table.schemaId === schemaId) || [];
-  };
-
-  const getFieldsForTable = (tableId: number) => {
-    if (!fields) return [];
-    return fields.filter((field: any) => field.tableId === tableId) || [];
-  };
-
   return (
-    <div className="divide-y divide-gray-200">
-      {schemas.map((schema) => (
-        <div key={schema.id} className="bg-white">
-          <Button
-            variant="ghost"
-            className="w-full py-3 flex items-center justify-between"
-            onClick={() => toggleSchema(schema.id)}
-          >
-            <div className="flex items-center">
-              <Database className="text-primary mr-2 h-5 w-5" />
-              <span className="font-medium">{schema.name}</span>
-            </div>
-            {expandedSchemas[schema.id] ? (
-              <ChevronUp className="text-gray-400 h-4 w-4" />
-            ) : (
-              <ChevronDown className="text-gray-400 h-4 w-4" />
-            )}
-          </Button>
+    <Paper elevation={0} variant="outlined">
+      {initialSchemas.map((schema) => {
+        const displaySchema = loadedSchemaIds.has(schema.id) ? fullSchemas[schema.id] : schema;
 
-          {expandedSchemas[schema.id] && (
-            <div className="pb-3 pl-8">
-              <div className="border border-gray-200 rounded-md overflow-hidden">
-                <div className="bg-gray-50 px-4 py-2 text-xs font-medium text-gray-500 uppercase">
-                  Tables
-                </div>
-                <div className="divide-y divide-gray-200">
-                  {getTablesForSchema(schema.id).map((table: any) => (
-                    <div key={table.id} className="bg-white">
-                      <Button
-                        variant="ghost"
-                        className="w-full px-4 py-2 flex items-center justify-between hover:bg-gray-50"
-                        onClick={() => toggleTable(table.id)}
+        return (
+          <div key={schema.id}>
+            <Accordion
+              expanded={!!expandedSchemas[schema.id]}
+              onChange={() => toggleSchema(schema.id)}
+              disableGutters
+              elevation={0}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls={`schema-${schema.id}-content`}
+                id={`schema-${schema.id}-header`}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <DatabaseIcon sx={{ color: 'primary.main', mr: 1 }} />
+                  <Typography variant="subtitle1">{schema.name}</Typography>
+                </Box>
+              </AccordionSummary>
+
+              <AccordionDetails sx={{ pl: 4 }}>
+                {loadedSchemaIds.has(schema.id) ? (
+                  <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
+                    <Box sx={{ bgcolor: 'grey.100', px: 2, py: 1 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ fontWeight: 'medium', textTransform: 'uppercase' }}
                       >
-                        <span className="text-sm font-medium">{table.name}</span>
-                        {expandedTables[table.id] ? (
-                          <ChevronUp className="text-gray-400 h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="text-gray-400 h-4 w-4" />
-                        )}
-                      </Button>
+                        Tables
+                      </Typography>
+                    </Box>
 
-                      {expandedTables[table.id] && (
-                        <div className="px-4 py-2 bg-gray-50">
-                          <div className="text-xs font-medium text-gray-500 uppercase mb-2">Fields</div>
-                          <div className="grid grid-cols-3 gap-2">
-                            {getFieldsForTable(table.id).map((field: any) => (
-                              <div key={field.id} className="text-sm">
-                                <span className="font-medium">{field.name}</span>
-                                <span className="text-gray-500 ml-1">({field.dataType})</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  {getTablesForSchema(schema.id).length === 0 && (
-                    <div className="px-4 py-3 text-sm text-gray-500">
-                      No tables available
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
+                    <Divider />
+
+                    {displaySchema.tables && displaySchema.tables.length > 0 ? (
+                      displaySchema.tables.map((table) => (
+                        <Box key={table.id}>
+                          <Accordion
+                            disableGutters
+                            elevation={0}
+                            expanded={!!expandedTables[table.id]}
+                            onChange={() => toggleTable(table.id)}
+                          >
+                            <AccordionSummary
+                              expandIcon={<ExpandMoreIcon />}
+                              aria-controls={`table-${table.id}-content`}
+                              id={`table-${table.id}-header`}
+                            >
+                              <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                                {table.name}
+                              </Typography>
+                            </AccordionSummary>
+
+                            <AccordionDetails sx={{ bgcolor: 'grey.50', px: 2, py: 1 }}>
+                              <Typography
+                                variant="caption"
+                                sx={{ fontWeight: 'medium', textTransform: 'uppercase', mb: 1 }}
+                              >
+                                Fields
+                              </Typography>
+
+                              <Grid container spacing={2}>
+                                {table.fields && table.fields.length > 0 ? (
+                                  table.fields.map((field) => (
+                                    <Grid item xs={4} key={field.id}>
+                                      <Typography variant="body2" component="div">
+                                        <Box component="span" sx={{ fontWeight: 'medium' }}>
+                                          {field.name}
+                                        </Box>
+                                        <Box
+                                          component="span"
+                                          sx={{ color: 'text.secondary', ml: 0.5 }}
+                                        >
+                                          ({field.dataType})
+                                        </Box>
+                                      </Typography>
+                                    </Grid>
+                                  ))
+                                ) : (
+                                  <Grid item xs={12}>
+                                    <Typography variant="body2" color="text.secondary">
+                                      No fields available
+                                    </Typography>
+                                  </Grid>
+                                )}
+                              </Grid>
+                            </AccordionDetails>
+                          </Accordion>
+                          <Divider />
+                        </Box>
+                      ))
+                    ) : (
+                      <Box sx={{ px: 2, py: 1.5 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          No tables available
+                        </Typography>
+                      </Box>
+                    )}
+                  </Paper>
+                ) : (
+                  <Box
+                    sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 2 }}
+                  >
+                    <CircularProgress size={20} sx={{ mr: 1 }} />
+                    <Typography>Loading schema details...</Typography>
+                  </Box>
+                )}
+              </AccordionDetails>
+            </Accordion>
+            <Divider />
+          </div>
+        );
+      })}
+    </Paper>
   );
 }

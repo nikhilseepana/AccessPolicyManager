@@ -1,7 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 export default function MyRequests() {
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
@@ -20,7 +27,7 @@ export default function MyRequests() {
 
   // Handle viewing request details
   const handleViewRequestDetails = (requestId: number) => {
-    const request = requests?.find(r => r.id === requestId);
+    const request = requests?.find((r) => r.id === requestId);
     setSelectedRequest(request);
   };
 
@@ -29,23 +36,23 @@ export default function MyRequests() {
     const now = new Date();
     const then = new Date(date);
     const diffInHours = Math.floor((now.getTime() - then.getTime()) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) return 'less than an hour ago';
     if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
-    
+
     const diffInDays = Math.floor(diffInHours / 24);
     return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
   };
 
   // Get schema name
   const getSchemaName = (schemaId: number) => {
-    const schema = schemas?.find(s => s.id === schemaId);
+    const schema = schemas?.find((s) => s.id === schemaId);
     return schema?.name || 'Unknown';
   };
 
   // Get status badge
   const getStatusBadge = (status: string) => {
-    switch(status) {
+    switch (status) {
       case 'pending':
         return (
           <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
@@ -88,10 +95,30 @@ export default function MyRequests() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Schema</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Schema
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Requested
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Status
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -102,14 +129,16 @@ export default function MyRequests() {
                       <div className="text-sm text-gray-900">{getSchemaName(request.schemaId)}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{formatRelativeTime(request.createdAt)}</div>
+                      <div className="text-sm text-gray-500">
+                        {formatRelativeTime(request.createdAt)}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(request.status)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button 
-                        className="text-primary hover:text-primary-dark" 
+                      <button
+                        className="text-primary hover:text-primary-dark"
                         onClick={() => handleViewRequestDetails(request.id)}
                       >
                         View
@@ -129,11 +158,7 @@ export default function MyRequests() {
         </div>
         <div className="px-6 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
           <div className="text-sm text-gray-700">
-            Showing{' '}
-            <span className="font-medium">
-              {requests ? requests.length : 0}
-            </span>{' '}
-            requests
+            Showing <span className="font-medium">{requests ? requests.length : 0}</span> requests
           </div>
         </div>
       </div>
@@ -147,7 +172,7 @@ export default function MyRequests() {
               Submitted {selectedRequest && formatRelativeTime(selectedRequest.createdAt)}
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedRequest && (
             <div className="mt-4">
               <div className="mb-4">
@@ -166,7 +191,7 @@ export default function MyRequests() {
                   </div>
                 )}
               </div>
-              
+
               {selectedRequest.items && selectedRequest.items.length > 0 && (
                 <div>
                   <h4 className="text-sm font-medium text-gray-700 mb-2">Requested Resources:</h4>

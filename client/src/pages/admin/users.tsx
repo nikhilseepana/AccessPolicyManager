@@ -1,11 +1,12 @@
-import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { Loader2, Search, UserPlus } from 'lucide-react';
+import { useState } from 'react';
+
+import CopyPermissionsModal from '@/components/admin/copy-permissions-modal';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Loader2, Search, UserPlus } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import CopyPermissionsModal from '@/components/admin/copy-permissions-modal';
 
 export default function AdminUsers() {
   const { toast } = useToast();
@@ -34,7 +35,10 @@ export default function AdminUsers() {
   // Delete user mutation
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: number) => {
-      return await apiRequest('DELETE', `/api/users/${userId}`);
+      return await apiRequest({
+        path: `/api/users/${userId}`,
+        method: 'DELETE',
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
@@ -94,21 +98,21 @@ export default function AdminUsers() {
   };
 
   // Filter users by search term
-  const filteredUsers = users?.filter(user => 
+  const filteredUsers = users?.filter((user) =>
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Get resources for user
   const getUserResources = (userId: number) => {
-    const userPolicies = allPolicies?.filter(policy => policy.userId === userId) || [];
-    
+    const userPolicies = allPolicies?.filter((policy) => policy.userId === userId) || [];
+
     // Get unique schemas
-    const schemaIds = [...new Set(userPolicies.map(policy => policy.schemaId))];
-    const schemaNames = schemaIds.map(id => {
-      const schema = schemas?.find(s => s.id === id);
+    const schemaIds = [...new Set(userPolicies.map((policy) => policy.schemaId))];
+    const schemaNames = schemaIds.map((id) => {
+      const schema = schemas?.find((s) => s.id === id);
       return schema?.name || 'Unknown';
     });
-    
+
     return schemaNames.join(', ') || 'None';
   };
 
@@ -147,11 +151,36 @@ export default function AdminUsers() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Schemas</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Activity</th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  User
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Role
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Schemas
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Last Activity
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -160,7 +189,9 @@ export default function AdminUsers() {
                   <tr key={user.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className={`flex-shrink-0 h-8 w-8 ${getUserColor(user.id)} rounded-full flex items-center justify-center text-white`}>
+                        <div
+                          className={`flex-shrink-0 h-8 w-8 ${getUserColor(user.id)} rounded-full flex items-center justify-center text-white`}
+                        >
                           {getInitials(user.email)}
                         </div>
                         <div className="ml-4">
@@ -180,19 +211,19 @@ export default function AdminUsers() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button 
+                      <button
                         className="text-primary hover:text-primary-dark mr-3"
                         onClick={() => handleViewUserPermissions(user.id)}
                       >
                         View
                       </button>
-                      <button 
+                      <button
                         className="text-gray-500 hover:text-gray-700 mr-3"
                         onClick={() => handleCopyUserPermissions(user)}
                       >
                         Copy
                       </button>
-                      <button 
+                      <button
                         className="text-red-500 hover:text-red-700"
                         onClick={() => handleDeleteUser(user.id)}
                       >
@@ -214,15 +245,8 @@ export default function AdminUsers() {
 
         <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
           <div className="text-sm text-gray-700">
-            Showing{' '}
-            <span className="font-medium">
-              {filteredUsers ? filteredUsers.length : 0}
-            </span>{' '}
-            of{' '}
-            <span className="font-medium">
-              {users ? users.length : 0}
-            </span>{' '}
-            users
+            Showing <span className="font-medium">{filteredUsers ? filteredUsers.length : 0}</span>{' '}
+            of <span className="font-medium">{users ? users.length : 0}</span> users
           </div>
         </div>
       </div>
@@ -230,7 +254,7 @@ export default function AdminUsers() {
       {showCopyModal && selectedUser && (
         <CopyPermissionsModal
           sourceUser={selectedUser}
-          users={users?.filter(u => u.id !== selectedUser.id) || []}
+          users={users?.filter((u) => u.id !== selectedUser.id) || []}
           onClose={() => setShowCopyModal(false)}
         />
       )}

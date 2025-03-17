@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import StatCard from '@/components/admin/stat-card';
 import { Loader2, Database } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
+
+import StatCard from '@/components/admin/stat-card';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -17,7 +18,7 @@ export default function AdminDashboard({ onTabChange }: AdminDashboardProps) {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   // Fetch stats data
   const { data: accessRequests, isLoading: isLoadingRequests } = useQuery({
     queryKey: ['/api/access-requests'],
@@ -33,20 +34,20 @@ export default function AdminDashboard({ onTabChange }: AdminDashboardProps) {
     queryKey: ['/api/schemas'],
     staleTime: 1000 * 60, // 1 minute
   });
-  
+
   // Initialize sample data mutation
   const initMutation = useMutation({
     mutationFn: async () => {
       setInitializing(true);
       setInitSuccess(false);
       setError(null);
-      
+
       try {
         const response = await apiRequest({
           path: '/api/init-sample-data',
           method: 'POST',
         });
-        
+
         setInitSuccess(true);
         return response;
       } catch (err) {
@@ -62,7 +63,7 @@ export default function AdminDashboard({ onTabChange }: AdminDashboardProps) {
         description: 'Sample data initialized successfully',
         variant: 'default',
       });
-      
+
       // Invalidate all queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/schemas'] });
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
@@ -79,7 +80,7 @@ export default function AdminDashboard({ onTabChange }: AdminDashboardProps) {
   });
 
   // Calculate stats
-  const pendingRequests = accessRequests?.filter(req => req.status === 'pending').length || 0;
+  const pendingRequests = accessRequests?.filter((req) => req.status === 'pending').length || 0;
   const totalUsers = users?.length || 0;
   const totalSchemas = schemas?.length || 0;
 
@@ -88,10 +89,10 @@ export default function AdminDashboard({ onTabChange }: AdminDashboardProps) {
     const now = new Date();
     const then = new Date(date);
     const diffInHours = Math.floor((now.getTime() - then.getTime()) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) return 'less than an hour ago';
     if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
-    
+
     const diffInDays = Math.floor(diffInHours / 24);
     return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
   };
@@ -113,10 +114,11 @@ export default function AdminDashboard({ onTabChange }: AdminDashboardProps) {
             <Database className="h-4 w-4" />
             <AlertTitle>No schemas found</AlertTitle>
             <AlertDescription>
-              Initialize sample data to get started with example database schemas, users, and permission policies.
+              Initialize sample data to get started with example database schemas, users, and
+              permission policies.
             </AlertDescription>
             <div className="mt-4">
-              <Button 
+              <Button
                 onClick={() => initMutation.mutate()}
                 disabled={initializing}
                 className="bg-amber-500 hover:bg-amber-600 text-white"
@@ -134,7 +136,7 @@ export default function AdminDashboard({ onTabChange }: AdminDashboardProps) {
           </Alert>
         </div>
       )}
-      
+
       {error && (
         <div className="mb-8">
           <Alert variant="destructive">
@@ -143,18 +145,19 @@ export default function AdminDashboard({ onTabChange }: AdminDashboardProps) {
           </Alert>
         </div>
       )}
-      
+
       {initSuccess && (
         <div className="mb-8">
           <Alert variant="default" className="bg-green-50 border-green-200">
             <AlertTitle>Success!</AlertTitle>
             <AlertDescription>
-              Sample data has been initialized successfully. You can now explore schemas, users, and access policies.
+              Sample data has been initialized successfully. You can now explore schemas, users, and
+              access policies.
             </AlertDescription>
           </Alert>
         </div>
       )}
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <StatCard
           title="Pending Requests"
@@ -187,20 +190,50 @@ export default function AdminDashboard({ onTabChange }: AdminDashboardProps) {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Schema</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resources</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  User
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Schema
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Resources
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Requested
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Status
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {accessRequests && accessRequests.length > 0 ? (
                 accessRequests.slice(0, 5).map((request) => {
-                  const schema = schemas?.find(s => s.id === request.schemaId);
-                  const user = users?.find(u => u.id === request.userId);
-                  
+                  const schema = schemas?.find((s) => s.id === request.schemaId);
+                  const user = users?.find((u) => u.id === request.userId);
+
                   return (
                     <tr key={request.id}>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -220,21 +253,29 @@ export default function AdminDashboard({ onTabChange }: AdminDashboardProps) {
                         <div className="text-sm text-gray-900">Multiple resources</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{formatRelativeTime(request.createdAt)}</div>
+                        <div className="text-sm text-gray-500">
+                          {formatRelativeTime(request.createdAt)}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          request.status === 'approved' ? 'bg-green-100 text-green-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
+                        <span
+                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            request.status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : request.status === 'approved'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                          }`}
+                        >
                           {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button 
+                        <button
                           className={`${
-                            request.status === 'pending' ? 'text-primary hover:text-primary-dark' : 'text-gray-500 hover:text-gray-700'
+                            request.status === 'pending'
+                              ? 'text-primary hover:text-primary-dark'
+                              : 'text-gray-500 hover:text-gray-700'
                           } mr-3`}
                           onClick={() => onTabChange('requests')}
                         >
@@ -255,7 +296,7 @@ export default function AdminDashboard({ onTabChange }: AdminDashboardProps) {
           </table>
         </div>
         <div className="px-6 py-3 border-t border-gray-200 bg-gray-50 text-right">
-          <button 
+          <button
             className="text-primary text-sm font-medium flex items-center ml-auto"
             onClick={() => onTabChange('requests')}
           >
